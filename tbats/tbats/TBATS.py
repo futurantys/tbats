@@ -1,4 +1,5 @@
 import numpy as np
+import logging
 
 from ..abstract import Estimator
 from . import Context
@@ -62,22 +63,31 @@ class TBATS(Estimator):
         if context is None:
             # the default TBATS context
             context = Context(show_warnings, n_jobs=n_jobs, multiprocessing_start_method=multiprocessing_start_method)
+        logging.info(f'TBATS.init()   context:{context}')
         super().__init__(context, use_box_cox=use_box_cox, box_cox_bounds=box_cox_bounds,
                          use_trend=use_trend, use_damped_trend=use_damped_trend,
                          seasonal_periods=seasonal_periods, use_arma_errors=use_arma_errors,
                          n_jobs=n_jobs)
 
     def _normalize_seasonal_periods(self, seasonal_periods):
+        logging.info(f'_normalize_seasonal_periods_to_type   seasonal_periods:{seasonal_periods}')
         return self._normalize_seasonal_periods_to_type(seasonal_periods, dtype=float)
 
     def _do_fit(self, y):
+        logging.info(f'_do_fit: components_grid')
         """Checks various model combinations to find best one by AIC"""
         components_grid = self._prepare_non_seasonal_components_grid()
+        logging.info(f'_do_fit: non_seasonal_model')
         non_seasonal_model = self._choose_model_from_possible_component_settings(y, components_grid=components_grid)
+        logging.info(f'_do_fit: harmonics_choosing_strategy')
         harmonics_choosing_strategy = self.context.create_harmonics_choosing_strategy()
+        logging.info(f'_do_fit: chosen_harmonics')
         chosen_harmonics = harmonics_choosing_strategy.choose(y, self.create_most_complex_components())
+        logging.info(f'_do_fit: components_grid')
         components_grid = self._prepare_components_grid(seasonal_harmonics=chosen_harmonics)
+        logging.info(f'_do_fit: seasonal_model')
         seasonal_model = self._choose_model_from_possible_component_settings(y, components_grid=components_grid)
+        logging.info(f'_do_fit: end')
 
         if non_seasonal_model.aic < seasonal_model.aic:
             return non_seasonal_model
@@ -93,4 +103,5 @@ class TBATS(Estimator):
             seasonal_periods=self.seasonal_periods,
             use_arma_errors=False,
         )
+        logging.info(f'create_most_complex_components: {components}')
         return self.context.create_components(**components)

@@ -6,6 +6,7 @@ from sklearn.utils.validation import check_array, column_or_1d as c1d
 from sklearn.model_selection import ParameterGrid
 
 import tbats.error as error
+import logging
 
 
 class Estimator(BaseEstimator):
@@ -81,6 +82,7 @@ class Estimator(BaseEstimator):
         raise NotImplementedError()
 
     def fit(self, y):
+        logging.info('fit')
         """Fit model to observations ``y``.
 
         :param y: array-like or iterable, shape=(n_samples,)
@@ -103,6 +105,7 @@ class Estimator(BaseEstimator):
         return best_model
 
     def _validate(self, y):
+        logging.info('_validate')
         """Validates input time series. Also adjusts box_cox if necessary."""
         try:
             y = c1d(check_array(y, ensure_2d=False, force_all_finite=True, ensure_min_samples=1,
@@ -126,11 +129,13 @@ class Estimator(BaseEstimator):
         return y
 
     def _case_fit(self, components_combination):
+        logging.info('_case_fit')
         """Internal method used by parallel computation."""
         case = self.context.create_case_from_dictionary(**components_combination)
         return case.fit(self._y)
 
     def _choose_model_from_possible_component_settings(self, y, components_grid):
+        logging.info('_choose_model_from_possible_component_settings')
         """Fits all models in a grid and returns best one by AIC
 
         Returns
@@ -153,6 +158,7 @@ class Estimator(BaseEstimator):
         return best_model
 
     def _prepare_components_grid(self, seasonal_harmonics=None):
+        logging.info('_prepare_components_grid')
         """Provides a grid of all allowed model component combinations.
 
         Parameters
@@ -193,6 +199,7 @@ class Estimator(BaseEstimator):
         return ParameterGrid(allowed_combinations)
 
     def _prepare_non_seasonal_components_grid(self):
+        logging.info('_prepare_non_seasonal_components_grid')
         """Provides a grid of all allowed  non-season model component combinations."""
         allowed_combinations = []
 
@@ -226,12 +233,14 @@ class Estimator(BaseEstimator):
 
     @staticmethod
     def __prepare_component_boolean_combinations(param):
+        logging.info('__prepare_component_boolean_combinations')
         combinations = [param]
         if param is None:
             combinations = [False, True]
         return combinations
 
     def _normalize_seasonal_periods_to_type(self, seasonal_periods, dtype):
+        logging.info('_normalize_seasonal_periods_to_type')
         """Validates seasonal periods and normalizes them
 
         Normalization ensures periods are of proper type, unique and sorted.
